@@ -292,10 +292,10 @@
           var radio_provided = document.getElementById(`riddle-provided-${i}`)
 
           if (radio_provided.checked) {
-            riddleType.value == 'AI';
+            riddleType.value = 'Provided';
           }
           else if (radio_ai.checked) {
-            riddleType.value == 'Provided';
+            riddleType.value = 'AI';
           }
 
           riddle.value = document.getElementById(`riddle-${i}`).value == null ? "" : document.getElementById(`riddle-${i}`).value;
@@ -380,7 +380,7 @@
       var saveDiv = document.createElement('div');
       saveDiv.innerHTML = `
         <input id="riddle-type-${count}-save" type="text" name="riddle-type-${count}" class="form-control d-none">
-        <textarea id="riddle-${count}-save" name="riddle${count}-save" class="form-control d-none" placeholder=""></textarea>
+        <textarea id="riddle-${count}-save" name="riddle${count}" class="form-control d-none" placeholder=""></textarea>
         <input id="room${count}-save" type="text" name="room${count}" class="form-control d-none">
         <input id="code${count}-save" type="text" name="code${count}" class="form-control d-none">
       `;

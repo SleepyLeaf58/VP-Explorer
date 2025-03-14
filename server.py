@@ -57,10 +57,12 @@ def loaded_user(user_id):
 @app.route('/register', methods=["GET", "POST"])
 def register():
     if request.method == 'POST':
-        user = User(username=request.form.get("username"), password=request.form.get("password"))
-        db.session.add(user)
-        db.session.commit()
-        return redirect(url_for("login"))
+        if (db.session.query(User).filter_by(username=request.form.get("username")).count() < 1):
+            user = User(username=request.form.get("username"), password=request.form.get("password"))
+            db.session.add(user)
+            db.session.commit()
+            return redirect(url_for("login"))
+        return render_template("error.html", error="User Already Exists")
     
     return render_template("sign-up.html")
 
@@ -151,10 +153,8 @@ def save_hunt():
     objectNumber = 1
     objects = []
 
-    print(request.form)
     while f"riddle{objectNumber}" in request.form:
         obj = None
-        print("FORM", request.form[f'room{objectNumber}'], request.form[f'code{objectNumber}'], request.form[f'riddle{objectNumber}'])
         if (request.form[f'riddle-type-{objectNumber}'] == 'AI'):
             obj = ObjectGenerated("", request.form[f'room{objectNumber}'], request.form[f'code{objectNumber}'])
         else: 
@@ -169,7 +169,6 @@ def save_hunt():
     for cnt, object in enumerate(objects):
         object.set_riddle(request.form[f'riddle{cnt+1}'])
 
-    print(objects)
     saved_hunts[hunt_id] = SavedHunt(hunt_id, hunt_name, organizer, objects)
 
     curr_user = User.query.filter_by(username=current_user.username).first()
@@ -189,9 +188,37 @@ def dashboard():
         if hunt.save_id in saved_hunts:
             user_games.append(saved_hunts[hunt.save_id])
 
-    for game in user_games:
-        print(game.objects)
     return render_template("dashboard.html", user_games=user_games)
+
+@app.route("/start-saved-hunt", methods=["POST"])
+def start_saved_hunt():
+    # Cleaning out inactive hunts that have been open for 3 hours
+    INACTIVITY_LIMIT = 60*60*3
+    for id in hunts:
+        if time.time() - hunts[id].get_start_time() > INACTIVITY_LIMIT:
+            hunts.pop(id)
+
+    # Creating new hunt
+    game_id = int(request.form.get("game_id"))
+    saved_hunt = saved_hunts[game_id]
+    
+    objects = saved_hunt.objects
+    players = []
+
+    hunt_id = random.randint(1000, 9999)    
+    while hunt_id in hunts:
+        hunt_id = random.randint(1000, 9999)
+
+    hunts[hunt_id] = Hunt(saved_hunt.get_name(), saved_hunt.get_organizer(), objects, players, time.time())
+    return render_template("hunt-code.html", hunt_name=saved_hunt.get_name(), hunt_id=hunt_id)
+
+@app.route("/delete-saved-hunt", methods=["POST"])
+def delete_saved_hunt():
+    id = int(request.form.get("game_id"))
+    game = Game.query.filter_by(save_id=id).first()
+    db.session.delete(game)
+    db.session.commit()
+    return redirect(url_for("dashboard"))
 
 @app.route("/join-hunt", methods=["POST"])
 def join_hunt():
@@ -226,7 +253,6 @@ def current_riddle_get(player, hunt):
 
     for player in hunts[hunt_id].players:
         if player_id == player.get_id():
-            player.set_start_time(time.time())
             next_hint = hunts[hunt_id].objects[player.get_current_object()].get_riddle()
             next_room = hunts[hunt_id].objects[player.get_current_object()].get_room()
             return render_template("player-dashboard.html", riddle=next_hint, room=next_room, obj=player.get_current_object(), player_id=player_id, hunt_id=hunt_id)
@@ -291,6 +317,7 @@ def finish_game(player, hunt):
     
 @app.route("/leaderboard/<int:hunt_id>", methods=['GET'])
 def leaderboard(hunt_id):
+    print("LEADERBOARD")
     if hunt_id not in hunts:
         return render_template("error.html", error="Hunt Not Found")
 
@@ -303,6 +330,7 @@ def leaderboard(hunt_id):
             current_time = time.time()
         score = ScoreEntry(player.get_name(), player.get_current_object(), current_time-player.get_start_time())
         scores.append(score)
+        print(player.get_start_time())
 
     sorted_scores = sorted(scores, key=lambda x: (x.get_score(), -x.get_time()), reverse=True)
     

@@ -22,8 +22,17 @@ class SavedHunt:
     def set_name(self, name):
         self.__name = name
     
-    def get_organizer(self) :
+    def get_organizer(self):
         return self.__organizer
 
     def set_organizer(self, organizer):
         self.__organizer = organizer
+
+    def get_objects_str(self):
+        s = ""
+        for obj in self.objects:
+            s += f"(Room: {obj.get_room()}, Code: {obj.get_code()}), "
+        return s
+
+    def get_num_objects(self):
+        return len(self.objects)

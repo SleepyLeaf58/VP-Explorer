@@ -70,13 +70,21 @@
               <img src="static/vicpark.jpg" height="150px" class="card-img-top object-fit-cover" alt="...">
               <div class="card-body">
                 <h5 class="card-title text-center">{{game.get_name()}}</h5>
-                <p class="card-text">Objects: {{game.objects}}</p>
+                <p class="card-text">Objects: {{game.get_objects_str()}}</p>
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-outline-secondary">Play</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary">Delete</button>
+                    <form action="/start-saved-hunt" method="POST">
+                      <label for="game_id" class="d-none"></label>
+                      <input type="text" name="game_id" class="form-control d-none" placeholder="{{game.get_id()}}" value="{{game.get_id()}}">
+                      <button type="submit" class="btn btn-sm btn-outline-secondary">Play</button>
+                    </form>
+                    <form action="/delete-saved-hunt" method="POST">
+                      <label for="game_id" class="d-none"></label>
+                      <input type="text" name="game_id" class="form-control d-none" placeholder="{{game.get_id()}}" value="{{game.get_id()}}">
+                      <button type="submit" class="btn btn-sm btn-outline-secondary">Delete</button>
+                    </form>
                   </div>
-                  <small class="text-body-secondary">{{game.objects}} Objects</small>
+                  <small class="text-body-secondary">{{game.get_num_objects()}} Objects</small>
                 </div>
               </div>
             </div>
