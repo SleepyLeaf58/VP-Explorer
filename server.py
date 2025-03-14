@@ -1,13 +1,16 @@
 from flask import *
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user
 from dotenv import load_dotenv
 import os
+
+# from Models import db, User, Game, Object
 
 import random
 import time
 
 from Hunt import Hunt
+from SavedHunt import SavedHunt
 from ObjectGenerated import ObjectGenerated
 from ObjectProvided import ObjectProvided
 from Player import Player
@@ -20,31 +23,41 @@ app = Flask(__name__)
 load_dotenv()
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"   
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config["SECRET_KEY"] = os.environ['DB_KEY']
-db = SQLAlchemy()
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+db = SQLAlchemy()
+
 # User Model
-class Users(UserMixin, db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(250), unique=True, nullable=False)
     password = db.Column(db.String(250), nullable=False)
+    games = db.relationship('Game', backref='user')
+
+class Game(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    save_id = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 db.init_app(app)
 with app.app_context():
+    db.drop_all()
     db.create_all()
 
 # User Loader
 @login_manager.user_loader
 def loaded_user(user_id):
-    return Users.query.get(user_id)
+    return User.query.get(user_id)
 
 # Registration
 @app.route('/register', methods=["GET", "POST"])
 def register():
     if request.method == 'POST':
-        user = Users(username=request.form.get("username"), password=request.form.get("password"))
+        user = User(username=request.form.get("username"), password=request.form.get("password"))
         db.session.add(user)
         db.session.commit()
         return redirect(url_for("login"))
@@ -55,7 +68,7 @@ def register():
 @app.route('/login', methods = ["GET", "POST"])
 def login():
     if request.method == 'POST':
-        user = Users.query.filter_by(username=request.form.get("username")).first()
+        user = User.query.filter_by(username=request.form.get("username")).first()
 
         if (user.password == request.form.get("password")):
             login_user(user)
@@ -74,11 +87,6 @@ def logout():
 def home():
     # Render home.html on "/" route
     return render_template("home.html")
-
-# Dashboard
-@app.route("/dashboard")
-def dashboard():
-    return render_template("dashboard.html")
 
 # Game Functions
 # Game Creation
@@ -128,18 +136,68 @@ def start_hunt():
         object.set_riddle(request.form[f'riddle{cnt+1}'])
 
     hunts[hunt_id] = Hunt(hunt_name, organizer, objects, players, time.time())
-    print(hunts)
     return render_template("hunt-code.html", hunt_name=hunt_name, hunt_id=hunt_id)
+
+# Saving Hunts
+saved_hunts = {}
+current_save = [0] #Counter to Set IDs for saved hunts
+
+@app.route("/save-hunt", methods=["POST"])
+def save_hunt():
+    # Creating new hunt
+    hunt_name = request.form['roomName']
+    organizer = request.form['org']
+    
+    objectNumber = 1
+    objects = []
+
+    print(request.form)
+    while f"riddle{objectNumber}" in request.form:
+        obj = None
+        print("FORM", request.form[f'room{objectNumber}'], request.form[f'code{objectNumber}'], request.form[f'riddle{objectNumber}'])
+        if (request.form[f'riddle-type-{objectNumber}'] == 'AI'):
+            obj = ObjectGenerated("", request.form[f'room{objectNumber}'], request.form[f'code{objectNumber}'])
+        else: 
+            obj = ObjectProvided("", request.form[f'room{objectNumber}'], request.form[f'code{objectNumber}'])
+        objects.append(obj)
+        objectNumber += 1
+
+    current_cnt = current_save[0]
+    hunt_id = current_cnt
+    current_save[0] += 1
+
+    for cnt, object in enumerate(objects):
+        object.set_riddle(request.form[f'riddle{cnt+1}'])
+
+    print(objects)
+    saved_hunts[hunt_id] = SavedHunt(hunt_id, hunt_name, organizer, objects)
+
+    curr_user = User.query.filter_by(username=current_user.username).first()
+    save = Game(save_id=hunt_id, user=curr_user)
+    db.session.add(save)
+    db.session.commit()
+    return redirect(url_for("dashboard"))
+
+# Dashboard for Saved Games
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    if not current_user.is_authenticated:
+        return render_template("error.html", error="Not Logged In")
+
+    user_games = []
+    for hunt in current_user.games:
+        if hunt.save_id in saved_hunts:
+            user_games.append(saved_hunts[hunt.save_id])
+
+    for game in user_games:
+        print(game.objects)
+    return render_template("dashboard.html", user_games=user_games)
 
 @app.route("/join-hunt", methods=["POST"])
 def join_hunt():
     hunt_id = int(request.form["id"])
     player_name = str(request.form["name"])
 
-    print(hunt_id, player_name)
-
-    print(hunt_id in hunts)
-    print(hunts)
     if hunt_id in hunts:
         player = Player(len(hunts[hunt_id].players), player_name, 0, time.time(), time.time(), False)
         hunts[hunt_id].players.append(player)
@@ -251,4 +309,6 @@ def leaderboard(hunt_id):
     return render_template("leaderboard.html", sorted_scores=enumerate(sorted_scores))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()
+        app.run(debug=True)

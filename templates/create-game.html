@@ -37,13 +37,13 @@
           </li>
         </ul>
         
-        <div class="d-flex">
+        <div class="d-flex text-end">
           {% if current_user.is_authenticated %}
-          <div class="nav-item dropdown">
+          <div class="nav-item dropdown text-end">
             <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              Logged In
+              {{current_user.is_authenticated}}
             </a>
-            <ul class="dropdown-menu">
+            <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" href="/logout">Log Out</a></li>
             </ul>
           </div>
@@ -102,7 +102,7 @@
               <div class="col-md-4">
                 <div class="mb-3">
                   <label id="description-1" class="form-label">Description #1</label>
-                  <textarea name="riddle1" class="form-control"></textarea>
+                  <textarea id="riddle-1" name="riddle1" class="form-control"></textarea>
                 </div>
               </div>
               <div class="col-md-3">
@@ -138,7 +138,7 @@
               <div class="col-md-4">
                 <div class="mb-3">
                   <label id="description-2" class="form-label">Description #2</label>
-                  <textarea name="riddle2" class="form-control"></textarea>
+                  <textarea id="riddle-2" name="riddle2" class="form-control"></textarea>
                 </div>
               </div>
               <div class="col-md-3">
@@ -174,7 +174,7 @@
               <div class="col-md-4">
                 <div class="mb-3">
                   <label id="description-3" class="form-label">Description #3</label>
-                  <textarea name="riddle3" class="form-control"></textarea>
+                  <textarea id="riddle-3" name="riddle3" class="form-control"></textarea>
                 </div>
               </div>
               <div class="col-md-3">
@@ -210,6 +210,38 @@
           </div>
 
           <button id="submit-object" type="submit" class="btn btn-primary w-100">Create Game</button>
+          </div>
+      </form>
+      <form action="/save-hunt" method="POST">
+          <div class="d-none" id="save-details">
+            <label class="d-none" for="roomName"></label>
+            <input type="text" name="roomName" class="form-control d-none" id="roomNameSave" aria-describedby="roomNameHelp" placeholder="RoomNameSave">
+            <label class="d-none" for="org"></label>
+            <input type="text" name="org" class="form-control d-none" id="organizerNameSave" placeholder="organizerNameSave">
+            <div class="d-none" id="save-objects">
+              <div>
+                <input id="riddle-type-1-save" type="text" name="riddle-type-1" class="form-control d-none">
+                <textarea id="riddle-1-save" name="riddle1" class="form-control" placeholder=""></textarea>
+                <input id="room1-save" type="text" name="room1" class="form-control d-none">
+                <input id="code1-save" type="text" name="code1" class="form-control d-none">
+              </div>
+              <div>
+                <input id="riddle-type-2-save" type="text" name="riddle-type-2" class="form-control d-none">
+                <textarea id="riddle-2-save" name="riddle2" class="form-control d-none" placeholder=""></textarea>
+                <input id="room2-save" type="text" name="room2" class="form-control d-none">
+                <input id="code2-save" type="text" name="code2" class="form-control d-none">
+              </div>
+              <div>
+                <input id="riddle-type-3-save" type="text" name="riddle-type-3" class="form-control d-none">
+                <textarea id="riddle-3-save" name="riddle3" class="form-control d-none" placeholder=""></textarea>
+                <input id="room3-save" type="text" name="room3" class="form-control d-none">
+                <input id="code3-save" type="text" name="code3" class="form-control d-none">
+              </div>
+            </div>
+            </div>
+          {% if current_user.is_authenticated %}
+          <button id="save-game" type="submit" class="btn btn-info w-100">Save Game</button>
+          {% endif %}
       </form>
     </div>
   </div>
@@ -222,6 +254,7 @@
     document.getElementById('AddButton').addEventListener('click', addObject);
     document.getElementById('RemoveButton').addEventListener('click', removeObject);
     document.getElementById('submit-object').addEventListener('click', validateForm);
+    document.getElementById('save-game').addEventListener('click', validateForm)
 
     for (let i = 1; i <= count; i++) {
       document.getElementById(`riddle-ai-${i}`).addEventListener('click', () => {updateRiddleType(i)});
@@ -242,9 +275,39 @@
     }
 
     function validateForm() {
+      // Updating Save Details
+      var roomNameSave = document.getElementById('roomNameSave');
+      var organizerNameSave = document.getElementById('organizerNameSave')
+
+      roomNameSave.value = document.getElementById('roomName').value;
+      organizerNameSave.value = document.getElementById('organizerName').value;
+
+      for (var i = 1; i < count+1; i++) {
+          var riddleType = document.getElementById(`riddle-type-${i}-save`);
+          var riddle = document.getElementById(`riddle-${i}-save`);
+          var room = document.getElementById(`room${i}-save`);
+          var code = document.getElementById(`code${i}-save`);
+
+          var radio_ai = document.getElementById(`riddle-ai-${i}`)
+          var radio_provided = document.getElementById(`riddle-provided-${i}`)
+
+          if (radio_provided.checked) {
+            riddleType.value == 'AI';
+          }
+          else if (radio_ai.checked) {
+            riddleType.value == 'Provided';
+          }
+
+          riddle.value = document.getElementById(`riddle-${i}`).value == null ? "" : document.getElementById(`riddle-${i}`).value;
+          room.value = document.getElementById(`room${i}`).value == null ? "" : document.getElementById(`room${i}`).value;
+          code.value = document.getElementById(`code${i}`).value == null ? "" : document.getElementById(`code${i}`).value;
+
+          // console.log(riddle.value, room.value, code.value, riddleType.value)
+      }
+
+      // Error Checking
       var errorElement = document.getElementById('error');
       var errorMessage = "";
-      
       
       if (count === 0) {
         errorMessage += "At least one object is required.<br>";
@@ -295,7 +358,7 @@
         <div class="col-md-4">
           <div class="mb-3">
             <label id="description-${count}" class="form-label">Description #${count}</label>
-            <textarea name="riddle${count}" class="form-control"></textarea>
+            <textarea id="riddle-${count}" name="riddle${count}" class="form-control"></textarea>
           </div>
         </div>
         <div class="col-md-3">
@@ -313,6 +376,15 @@
       </div>
       `;
       document.getElementById("ObjectInput").appendChild(div);
+
+      var saveDiv = document.createElement('div');
+      saveDiv.innerHTML = `
+        <input id="riddle-type-${count}-save" type="text" name="riddle-type-${count}" class="form-control d-none">
+        <textarea id="riddle-${count}-save" name="riddle${count}-save" class="form-control d-none" placeholder=""></textarea>
+        <input id="room${count}-save" type="text" name="room${count}" class="form-control d-none">
+        <input id="code${count}-save" type="text" name="code${count}" class="form-control d-none">
+      `;
+      document.getElementById("save-objects").appendChild(saveDiv)
     }
 
     function removeObject() {
@@ -321,6 +393,9 @@
       console.log("Remove", count);
       console.log(objectInput.lastElementChild);
       objectInput.removeChild(objectInput.lastElementChild);
+
+      var saveObjects = document.getElementById("save-objects");
+      saveObjects.removeChild(saveObjects.lastElementChild);
     }
 
   </script>
