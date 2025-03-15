@@ -59,6 +59,9 @@ def loaded_user(user_id):
 @app.route('/register', methods=["GET", "POST"])
 def register():
     if request.method == 'POST':
+        if request.form.get('username') == "" or request.form.get('password') == "":
+            return render_template("error.html", error = "Username/Password cannot be blank")
+
         if (db.session.query(User).filter_by(username=request.form.get("username")).count() < 1):
             user = User(username=request.form.get("username"), password=request.form.get("password"))
             db.session.add(user)
@@ -355,4 +358,4 @@ def guessr():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-        app.run(debug=True)
+        app.run()

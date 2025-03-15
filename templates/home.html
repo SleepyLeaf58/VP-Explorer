@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Home</title>
+    <title>VPEX - Home</title>
     <style>
       .fixed-bg {
         background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3)), url("static/vicpark.jpg");
@@ -13,10 +13,25 @@
         background-size: cover;
       }
 
-      .text-header {
-        font-size: 16rem;
+      .image {
+        width: auto;
+        height: auto;
+        max-width: 400px;
+        max-height: 400px;
       }
-      
+      .text-header {
+        font-size: 8rem;
+      }
+      @media screen and (min-width: 480px) {
+        .text-header {
+          font-size: 12rem;
+        }
+      }
+      @media screen and (min-width: 720px) {
+        .text-header {
+          font-size: 16rem;
+        }
+      }
     </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   </head>
@@ -82,11 +97,35 @@
     </nav>
 
     <main>
-      <div class="fixed-bg vh-100 d-flex justify-content-center align-items-center">
+      <div class="fixed-bg vh-100 d-flex flex-column justify-content-center align-items-center">
         <h1 class="text-white text-header">VPEX</h1>
+        <p class="text-warning">Scroll down for How to Play Instructions!</p>
       </div>
-      <div>
-        <h2>How to Play</h2>
+      <div class="mt-3">
+        <div class="p-4 d-flex justify-content-center align-items-center flex-column">
+          <h2 class="text-center">How to Play Scavenger Hunt</h2>
+          <p class="text-justify w-75">
+            In the scavenger hunt, you will be directed to a room and given a riddle. In the room, there will 
+            be a hidden object with a code written upon it. Its location will be hinted through the riddle and 
+            you will have to find it! Once you've found the object, submit the code to reach the next item. Compete
+            with other users to finish the hunt first!
+          </p>
+          <img src="static/code.jpg" alt="Image of Water Bottle with Submission Code" class="image"/>
+          <div class="d-flex justify-content-center gap-4">
+            <a href="/create-game"><button title="create" type="button" class="btn btn-primary mt-3">Create a Hunt!</button></a>
+            <a href="/join-game"><button title="join" type="button" class="btn btn-info mt-3">Join a Hunt!</button></a>
+          </div>
+        </div>
+        <div class="p-4 d-flex justify-content-center align-items-center flex-column">
+          <h2 class="text-center">How to Play Guessr</h2>
+          <p class="text-justify w-75">
+            In this game, you will be shown a photo when you click "Show Photo". Click on the map to guess the location
+            of the photo in the school. Click submit to see how close you got to the actual location!
+          </p>
+          <div class="d-flex justify-content-center">
+            <a href="/guessr"><button title="create" type="button" class="btn btn-info mt-3">Play Guessr!</button></a>
+          </div>
+        </div>
       </div>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
