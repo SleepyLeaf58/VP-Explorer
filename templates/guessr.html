@@ -39,6 +39,7 @@
                         </a>
                         <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="join-game">Join Hunt</a></li>
+                        <li><a class="dropdown-item" href="/guessr">Play Guessr</a></li>
                         </ul>
                     </li>
                     {% if current_user.is_authenticated %}
@@ -77,7 +78,7 @@
         
 
     <!-- Main -->
-    <main class="flex-grow-1 d-flex border border-2 border-danger">
+    <main class="flex-grow-1 d-flex">
         <div id="image-div" class="col-sm d-flex flex-column">
             <img src="static/floors/floor1.jpg" alt="Map" class="map" id="image"/>
             <div></div>
@@ -128,17 +129,18 @@
         var show_image_button = document.getElementById('show-image');
 
         // Getting Map Width and Height
-        mapWidth = image.clientWidth
-        mapHeight = image.clientHeight
+        var rect = image.getBoundingClientRect();
+        var mapWidth = image.clientWidth
+        var mapHeight = image.clientHeight
 
         // Marker Locations
         guess_x = 0;
         guess_y = 0;
 
         // Answer Locations
-        ans_x = 431;
-        ans_y = 364;   
-        ans_floor = 2
+        ans_x = "{{loc.get_x()}}";
+        ans_y = "{{loc.get_y()}}";   
+        ans_floor = "{{loc.get_floor()}}"
 
         var buttonFloor1 = document.getElementById('floor1');
         var buttonFloor2 = document.getElementById('floor2');
@@ -151,16 +153,18 @@
         document.getElementById('guess').addEventListener('click', showScore)
 
         function showScore() {
-            console.log("AAAA")
             if (guessed) {
                 score_revealed = true
+
+                display_x = ans_x * mapWidth + rect.left
+                display_y = ans_y * mapHeight + rect.top
 
                 marker = document.createElement('div');
                 marker.classList.add("marker")
                 marker.classList.add("bg-success");
                 marker.style.position = 'absolute';
-                marker.style.top = `${ans_y-5}px`;
-                marker.style.left = `${ans_x-5}px`;
+                marker.style.top = `${display_y-5}px`;
+                marker.style.left = `${display_x-5}px`;
                 marker.style.width = '10px';
                 marker.style.height = '10px';
                 image_div.append(marker);
@@ -170,8 +174,8 @@
                 marker2.classList.add("h3");
                 marker2.classList.add("text-success");
                 marker2.style.position = 'absolute';
-                marker2.style.top = `${ans_y-40}px`;
-                marker2.style.left = `${ans_x-50}px`;
+                marker2.style.top = `${display_y-40}px`;
+                marker2.style.left = `${display_x}px`;
                 marker2.style.width = '60px';
                 marker2.style.height = '50px';
                 marker2.innerHTML = "ANSWER"
@@ -189,10 +193,10 @@
                     image.src = `static/floors/floor${ans_floor}.jpg`
                 }
                 else {
-                    rel_x = Math.abs(ans_x-guess_x) / mapWidth * 100
-                    rel_y = Math.abs(ans_y-guess_y) / mapHeight * 100
+                    rel_x = Math.abs(ans_x-guess_x)
+                    rel_y = Math.abs(ans_y-guess_y)
                     off_distance = calcDistance(rel_x, rel_y)
-                    score_text.innerHTML = `Score: ${Math.max(100-off_distance, 0)}/100`
+                    score_text.innerHTML = `Score: ${Math.max(100-off_distance*100, 0)}/100`
                     image.src = `static/floors/floor${ans_floor}.jpg`
 
                     console.log(off_distance, rel_x, rel_y)
@@ -209,7 +213,11 @@
                 guessed = true
                 var cX = event.pageX;
                 var cY = event.pageY;
-                console.log(cX, cY);
+
+                guess_x = (cX - rect.left) / mapWidth
+                guess_y = (cY - rect.top) / mapHeight
+
+                console.log(guess_x, guess_y);
 
                 image_div.removeChild(image_div.lastChild)
                 var marker = document.createElement('div');
@@ -221,16 +229,13 @@
                 marker.style.width = '10px';
                 marker.style.height = '10px';
                 image_div.append(marker);
-
-                guess_x = cX;
-                guess_Y = cY;
             }
         }
 
         function changeImage() {
             if (shown_image ==="map") {
                 show_image_button.innerHTML = "Show Map"
-                image.src = "static/locations/1.jpg"
+                image.src = "{{loc.get_img()}}"
 
                 shown_image = "photo"
             }

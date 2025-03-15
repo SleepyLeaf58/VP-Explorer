@@ -2,6 +2,7 @@ from flask import *
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
+from random import choice
 import os
 
 # from Models import db, User, Game, Object
@@ -15,6 +16,7 @@ from ObjectGenerated import ObjectGenerated
 from ObjectProvided import ObjectProvided
 from Player import Player
 from ScoreEntry import ScoreEntry
+from Location import Location
 
 app = Flask(__name__)
 
@@ -336,9 +338,19 @@ def leaderboard(hunt_id):
     
     return render_template("leaderboard.html", sorted_scores=enumerate(sorted_scores))
 
+# Adding Location Data
+locations = []
+locations.append(Location(1, 0.5612903225325769, 0.5185378550238149, 2))
+locations.append(Location(2, 0.5612903225325769, 0.5185378550238149, 2))
+locations.append(Location(3, 0.5759197324016022, 0.566233762930998, 2))
+locations.append(Location(4, 0.7096989966156491, 0.5987012953985305, 1))
+locations.append(Location(5, 0.1963446474884571, 0.22060810553060994, 2))
+locations.append(Location(17, 0.08428093641498018, 0.2999999966972318, 1))
+
 @app.route("/guessr")
 def guessr():
-    return render_template("guessr.html")
+    location = choice(locations)
+    return render_template("guessr.html", loc=location)
 
 if __name__ == "__main__":
     with app.app_context():
