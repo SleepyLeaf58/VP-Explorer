@@ -32,6 +32,13 @@
                         <li><a class="dropdown-item" href="join-game">Join Hunt</a></li>
                         </ul>
                     </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                        Saved Games
+                        </a>
+                    </li>
+                    {% endif %}
                     </ul>
                 
                 <div class="d-flex text-end">
@@ -63,7 +70,7 @@
     <!-- Main -->
     <main class="flex-grow-1 container">
         <div class="row vh-100">
-            <div class="col-sm d-flex flex-column p-3 gap-3">
+            <div class="col-md-3 d-flex flex-column p-3 gap-3">
                 <!-- Current Time -->
                 <!-- Items found out of total -->
                 <div class = "d-flex justify-content-between">

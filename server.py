@@ -336,6 +336,10 @@ def leaderboard(hunt_id):
     
     return render_template("leaderboard.html", sorted_scores=enumerate(sorted_scores))
 
+@app.route("/guessr")
+def guessr():
+    return render_template("guessr.html")
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
