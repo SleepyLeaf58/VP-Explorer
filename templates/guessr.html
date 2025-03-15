@@ -120,15 +120,18 @@
         </div>
     </main>
     <script>
+        // Variables to track states
         var guessed = false
         var score_revealed = false
         currentFloor = 1
         shown_image = "map"
 
+        // Getting Map/Photo Image
         var image = document.getElementById('image');
         var show_image_button = document.getElementById('show-image');
 
-        // Getting Map Width and Height
+        // Getting Map Width and Height based on client screen. This tracks the answer locations by percentage
+        // of the photo rather than absolute pixels so that it works on any desktop
         var rect = image.getBoundingClientRect();
         var mapWidth = image.clientWidth
         var mapHeight = image.clientHeight
@@ -137,7 +140,7 @@
         guess_x = 0;
         guess_y = 0;
 
-        // Answer Locations
+        // Answer Locations given has percentage of phooto
         ans_x = "{{loc.get_x()}}";
         ans_y = "{{loc.get_y()}}";   
         ans_floor = "{{loc.get_floor()}}"
@@ -147,11 +150,13 @@
         var buttonFloor3 = document.getElementById('floor3');
         var image_div = document.getElementById('image-div');
 
+        // Adding event listeners
         document.getElementById('form').addEventListener('click', changeFloor);
         image.addEventListener('click', addMarker, true);
         show_image_button.addEventListener('click', changeImage);
         document.getElementById('guess').addEventListener('click', showScore)
 
+        // Show Score given by guess
         function showScore() {
             if (guessed) {
                 score_revealed = true
@@ -204,10 +209,12 @@
             }
         }
 
+        // Pythagorean Theorem Calculation
         function calcDistance(x, y) {
             return Math.sqrt(Math.abs(x)**2 + Math.abs(y)**2)
         }
 
+        // Adding Marker onto Photo
         function addMarker(event) {
             if (!score_revealed) {
                 guessed = true
@@ -232,6 +239,7 @@
             }
         }
 
+        // Change the image based on states
         function changeImage() {
             if (shown_image ==="map") {
                 show_image_button.innerHTML = "Show Map"
@@ -247,6 +255,7 @@
             }
         }
 
+        // Change the floor based on states
         function changeFloor() {
             if (buttonFloor1.checked) {
                 currentFloor = 1

@@ -1,3 +1,4 @@
+# Storing Player information
 class Player:
     __id = None
     __name = None
@@ -47,5 +48,6 @@ class Player:
     def set_finished(self, finished):
         self.__finished = finished
 
+    # Debug code
     def __str__(self):
         return f"('{self.__name}', '{self.__current_object}', '{self.__start_time}', '{self.__current_time}', '{self.__finished}')"

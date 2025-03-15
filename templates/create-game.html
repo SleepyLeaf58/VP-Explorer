@@ -221,6 +221,7 @@
           </div>
       </form>
       <form action="/save-hunt" method="POST">
+          <!-- Hidden form that copies the details from the visible form to pass information to the save-hunt method-->
           <div class="d-none" id="save-details">
             <label class="d-none" for="roomName"></label>
             <input type="text" name="roomName" class="form-control d-none" id="roomNameSave" aria-describedby="roomNameHelp" placeholder="RoomNameSave">
@@ -256,9 +257,10 @@
 
   <!-- Script for adding and removing objects-->
   <script>
-    // Adding and removing objects
+    // Object count
     let count = 3;
 
+    // Adding Event Listeners
     document.getElementById('AddButton').addEventListener('click', addObject);
     document.getElementById('RemoveButton').addEventListener('click', removeObject);
     document.getElementById('submit-object').addEventListener('click', validateForm);
@@ -269,6 +271,7 @@
       document.getElementById(`riddle-provided-${i}`).addEventListener('click', () => {updateRiddleType(i)});
     }
 
+    // Updates Description of Riddle Description Textarea based on the radio button selected
     function updateRiddleType(cnt) {
       var label = document.getElementById(`description-${cnt}`)
       var radio_ai = document.getElementById(`riddle-ai-${cnt}`)
@@ -282,6 +285,7 @@
       }
     }
 
+    // Validating form to make sure edge cases are covered
     function validateForm() {
       // Updating Save Details
       var roomNameSave = document.getElementById('roomNameSave');
@@ -290,6 +294,7 @@
       roomNameSave.value = document.getElementById('roomName').value;
       organizerNameSave.value = document.getElementById('organizerName').value;
 
+      // Updating information of the save_hunt form to match visiible form information
       for (var i = 1; i < count+1; i++) {
           var riddleType = document.getElementById(`riddle-type-${i}-save`);
           var riddle = document.getElementById(`riddle-${i}-save`);
@@ -324,6 +329,7 @@
         errorMessage = "";
       }
 
+      // Checking that inputs have been filled
       for (var i = 1; i < count+1; i++) {
         if (document.getElementById(`room${count}`).value === "") {
           errorMessage += "Room inputs cannot be left blank. <br>"
@@ -340,6 +346,7 @@
       }
     }
 
+    // Adding extra object
     function addObject() {
       //console.log("Add");
       count++;
@@ -395,6 +402,7 @@
       document.getElementById("save-objects").appendChild(saveDiv)
     }
 
+    // remove last object
     function removeObject() {
       if (count > 0) count--;
       var objectInput = document.getElementById("ObjectInput");

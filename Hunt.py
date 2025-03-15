@@ -1,3 +1,4 @@
+# Storing Hunt information
 class Hunt:
     __name = None
     __organizer = None

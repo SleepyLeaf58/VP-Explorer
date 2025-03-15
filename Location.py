@@ -1,3 +1,4 @@
+# Location class to track location
 class Location:
     __img = None
     __x = None

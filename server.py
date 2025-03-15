@@ -1,3 +1,4 @@
+# Flask Imports
 from flask import *
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
@@ -5,11 +6,11 @@ from dotenv import load_dotenv
 from random import choice
 import os
 
-# from Models import db, User, Game, Object
-
+# Other Library Imports for Utility
 import random
 import time
 
+# Importing Classes from files
 from Hunt import Hunt
 from SavedHunt import SavedHunt
 from ObjectGenerated import ObjectGenerated
@@ -33,13 +34,14 @@ login_manager.init_app(app)
 
 db = SQLAlchemy()
 
-# User Model
+# User Model for Database
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(250), unique=True, nullable=False)
     password = db.Column(db.String(250), nullable=False)
     games = db.relationship('Game', backref='user')
 
+# One to Many Relationship with Game
 class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     save_id = db.Column(db.Integer)
@@ -60,6 +62,7 @@ def loaded_user(user_id):
 def register():
     if request.method == 'POST':
         if request.form.get('username') == "" or request.form.get('password') == "":
+            # Error handling for blank registration
             return render_template("error.html", error = "Username/Password cannot be blank")
 
         if (db.session.query(User).filter_by(username=request.form.get("username")).count() < 1):
@@ -106,7 +109,7 @@ def create_game():
 def join_game():
     return render_template("join-game.html")
 
-
+# Dictionary storing active hunts that are ongoing
 hunts = {}
 
 # Route for organizers to start a hunt
@@ -126,6 +129,7 @@ def start_hunt():
     objects = []
     players = []
 
+    # Going through form and creating objects from form information
     while f"riddle{objectNumber}" in request.form:
         obj = None
         if (request.form[f'riddle-type-{objectNumber}'] == 'AI'):
@@ -135,10 +139,12 @@ def start_hunt():
         objects.append(obj)
         objectNumber += 1
 
+    # Generating Hunt Code. The loop ensures that the code is unique
     hunt_id = random.randint(1000, 9999)    
     while hunt_id in hunts:
         hunt_id = random.randint(1000, 9999)
 
+    # Setting riddles for hunt using polymorphism
     for cnt, object in enumerate(objects):
         object.set_riddle(request.form[f'riddle{cnt+1}'])
 
@@ -146,9 +152,10 @@ def start_hunt():
     return render_template("hunt-code.html", hunt_name=hunt_name, hunt_id=hunt_id)
 
 # Saving Hunts
-saved_hunts = {}
+saved_hunts = {} # Dictionary stores information for all existing saved hunts
 current_save = [0] #Counter to Set IDs for saved hunts
 
+# Route for saving hunts, follows similar process to start_hunt
 @app.route("/save-hunt", methods=["POST"])
 def save_hunt():
     # Creating new hunt
@@ -176,6 +183,7 @@ def save_hunt():
 
     saved_hunts[hunt_id] = SavedHunt(hunt_id, hunt_name, organizer, objects)
 
+    # Updating DB to add game to the logged in user
     curr_user = User.query.filter_by(username=current_user.username).first()
     save = Game(save_id=hunt_id, user=curr_user)
     db.session.add(save)
@@ -185,6 +193,7 @@ def save_hunt():
 # Dashboard for Saved Games
 @app.route("/dashboard", methods=["GET"])
 def dashboard():
+    # Returns error if user is not logged in
     if not current_user.is_authenticated:
         return render_template("error.html", error="Not Logged In")
 
@@ -195,6 +204,7 @@ def dashboard():
 
     return render_template("dashboard.html", user_games=user_games)
 
+# Route to start saved hunt from hunt information
 @app.route("/start-saved-hunt", methods=["POST"])
 def start_saved_hunt():
     # Cleaning out inactive hunts that have been open for 3 hours
@@ -217,6 +227,7 @@ def start_saved_hunt():
     hunts[hunt_id] = Hunt(saved_hunt.get_name(), saved_hunt.get_organizer(), objects, players, time.time())
     return render_template("hunt-code.html", hunt_name=saved_hunt.get_name(), hunt_id=hunt_id)
 
+# Route to delete saved hunt from database and user
 @app.route("/delete-saved-hunt", methods=["POST"])
 def delete_saved_hunt():
     id = int(request.form.get("game_id"))
@@ -225,6 +236,7 @@ def delete_saved_hunt():
     db.session.commit()
     return redirect(url_for("dashboard"))
 
+# Route to join ongoing hunt
 @app.route("/join-hunt", methods=["POST"])
 def join_hunt():
     hunt_id = int(request.form["id"])
@@ -237,6 +249,7 @@ def join_hunt():
     else:
         return render_template("error.html", error="Hunt Not Found")
 
+# Route to first riddle
 @app.route("/current-riddle", methods=["POST"])
 def current_riddle():
     hunt_id = int(request.form["hunt_id"])
@@ -244,13 +257,14 @@ def current_riddle():
 
     for player in hunts[hunt_id].players:
         if player_id == player.get_id():
-            player.set_start_time(time.time())
+            player.set_start_time(time.time()) # Setting the start time to use for calculating time elapsed
             next_hint = hunts[hunt_id].objects[player.get_current_object()].get_riddle()
             next_room = hunts[hunt_id].objects[player.get_current_object()].get_room()
             return render_template("player-dashboard.html", riddle=next_hint, room=next_room, obj=player.get_current_object(), player_id=player_id, hunt_id=hunt_id)
     
     return render_template("error.html", error="Player Not Found")
 
+# Route to get riddle information for other riddles
 @app.route("/current-riddle/<player>/<hunt>", methods=["GET"])
 def current_riddle_get(player, hunt):
     hunt_id = int(hunt)
@@ -264,6 +278,7 @@ def current_riddle_get(player, hunt):
     
     return render_template("error.html", error="Player Not Found")
 
+# Route to submit an item code
 @app.route("/submit-item", methods=['POST'])
 def submit_item():
     hunt_id = int(request.form["hunt_id"])
@@ -273,11 +288,13 @@ def submit_item():
     if hunt_id not in hunts:
         return render_template("error.html", error="Hunt Not Found")
     
+    # Going through players stored in the hunt to find the current player
     for player in hunts[hunt_id].players:
         if player_id == player.get_id():
             current_object_idx = player.get_current_object()
             correct_code = str(hunts[hunt_id].objects[current_object_idx].get_code())
 
+            # Player has already finished hunt
             if player.get_finished():
                 return render_template("error.html", error="You have already finished the hunt.")
             
@@ -285,8 +302,10 @@ def submit_item():
                 player.set_current_object(player.get_current_object() + 1)
                 player.set_current_time(time.time())
                 if player.get_current_object() < len(hunts[hunt_id].objects):
+                    # Next riddle if game is unfinished
                     return redirect(f"/current-riddle/{player_id}/{hunt_id}")
                 else:
+                    # Player has finished
                     player.set_finished(True)
                     return redirect(f"/finish/{player_id}/{hunt_id}")
             else:
@@ -302,12 +321,14 @@ def finish_game(player, hunt):
     for player in hunts[hunt_id].players:
         if player_id == player.get_id():
             if player and player.get_finished():
+                # Calculation of rank
                 player_time = player.get_current_time()
                 rank = 1
                 for pl in hunts[hunt_id].players:
                     if pl and pl.get_finished() and pl.get_current_time() < player_time:
                         rank += 1
 
+                # calculating finish time
                 total_seconds = round(player.get_current_time() - player.get_start_time())
                 hours = total_seconds // 3600
                 total_seconds %= 3600
@@ -319,15 +340,16 @@ def finish_game(player, hunt):
                 return render_template("error.html", error="Hunt is Unfinished")
 
     return render_template("error.html", error="Player Not Found")
-    
+
+# Route for seeing leaderboard
 @app.route("/leaderboard/<int:hunt_id>", methods=['GET'])
 def leaderboard(hunt_id):
-    print("LEADERBOARD")
     if hunt_id not in hunts:
         return render_template("error.html", error="Hunt Not Found")
 
     scores = []
     for player in hunts[hunt_id].players:
+        # Use the current time if the player is unfinished. If they are finished, used the time of their last object submission
         current_time = time.time()
         if (player.get_finished()):
             current_time = player.get_current_time()
@@ -350,6 +372,7 @@ locations.append(Location(4, 0.7096989966156491, 0.5987012953985305, 1))
 locations.append(Location(5, 0.1963446474884571, 0.22060810553060994, 2))
 locations.append(Location(17, 0.08428093641498018, 0.2999999966972318, 1))
 
+# Route for Guessr Game
 @app.route("/guessr")
 def guessr():
     location = choice(locations)

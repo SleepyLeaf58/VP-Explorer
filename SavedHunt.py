@@ -1,3 +1,4 @@
+# Storing Saved Hunts
 class SavedHunt:
     __id = None
     __name = None

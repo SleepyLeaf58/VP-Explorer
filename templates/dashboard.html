@@ -1,3 +1,4 @@
+<!-- Saved Games Dashboard screen -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,6 +82,7 @@
                 <p class="card-text">Objects: {{game.get_objects_str()}}</p>
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
+                    <!-- Hidden forms that track the game_id-->
                     <form action="/start-saved-hunt" method="POST">
                       <label for="game_id" class="d-none"></label>
                       <input type="text" name="game_id" class="form-control d-none" placeholder="{{game.get_id()}}" value="{{game.get_id()}}">

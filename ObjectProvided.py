@@ -1,3 +1,4 @@
+# Class for Objects with Provided riddle
 from Object import *
 
 class ObjectProvided(Object):

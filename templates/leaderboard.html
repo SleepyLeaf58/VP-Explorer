@@ -1,3 +1,4 @@
+<!-- Leaderboard Page -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -79,6 +80,7 @@
             </tr>
         </thead>
         <tbody>
+            <!-- Looping through sorted scores to show information-->
             {% for rank, sc in sorted_scores %}
             <tr>
                 <td>{{rank+1}}</td>

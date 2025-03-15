@@ -1,3 +1,4 @@
+# Storing Scores for Leaderboard Use
 class ScoreEntry:
     __name = None
     __score = None
