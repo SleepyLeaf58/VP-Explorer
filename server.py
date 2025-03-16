@@ -29,8 +29,6 @@ load_dotenv()
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv('DB_KEY')
-print("DEBUGGING" ,os.getenv('DB_KEY'), file=sys.stderr)
-sys.stderr.flush()
 
 login_manager = LoginManager()
 login_manager.init_app(app)

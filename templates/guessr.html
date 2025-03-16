@@ -1,13 +1,21 @@
-<!-- Page to Submit Items -->
 <!doctype html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>VPEX - Riddles</title>
+        <title>VPEX - Guessr</title>
+
+        <style>
+            .map {
+                height: auto;
+                width: auto;
+                max-width: 100%;
+                max-height: 100%;
+            }
+        </style>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     </head>
-    <body class="d-flex flex-column vh-100">
+    <body class="vh-100 d-flex flex-column">
         <nav class="navbar navbar-expand-lg bg-dark border-bottom border-body" data-bs-theme="dark">
             <!-- Navbar content -->
             <div class="container-fluid">
@@ -42,7 +50,7 @@
                     </li>
                     {% endif %}
                     </ul>
-                
+
                 <div class="d-flex text-end">
                     {% if current_user.is_authenticated %}
                     <div class="nav-item dropdown text-end">
@@ -67,38 +75,48 @@
             </div>
             </div>
         </nav>
-        
+
 
     <!-- Main -->
-    <main class="flex-grow-1 container">
-        <div class="row vh-100">
-            <div class="col-md-3 d-flex flex-column p-3 gap-3">
-                <!-- Current Time -->
-                <!-- Items found out of total -->
-                <div class = "d-flex justify-content-between">
-                    <p>{{obj+1}}/3</p>
-                    <p><a href="/leaderboard/{{hunt_id}}">Leaderboard</a></p>
-                </div>
-                <!-- Riddle -->
-                <div>
-                    <h2 class="text-center">Riddle #{{obj+1}}: {{room}}</h2>
-                    <p class="fst-italic">{{riddle}}</p>
-                </div>
-
-                <!-- Enter Code -->
-                <div>
-                    <form action="/submit-item" method="POST">
-                        <input name="code" type="number" class="form-control w-100" id="game-code-input" aria-describedby="item-code" placeholder="Enter Item Code">
-                        <label class="d-none" for="player-id">Player ID:</label>
-                        <input class="d-none" value="{{player_id}}" type="text" id="player-id" name="player_id">
-                        <label class="d-none" for="hunt-id">Hunt ID:</label>
-                        <input class="d-none" value="{{hunt_id}}" type="text" id="hunt-id" name="hunt_id">
-                        <button type="submit" class="btn btn-primary mt-3 w-100">Enter</button>
-                    </form> 
-                </div>
+    <main class="flex-grow-1 row">
+        <div id="image-div" class="col-md">
+            <img src="static/floors/floor1.jpg" alt="Map" class="map" id="image"/>
+            <div></div>
+        </div>
+        <div class="col-md d-flex justify-content-center align-items-center bg-secondary-subtle">
+            <div class="border border-2 border-danger rounded-3">
+                <container class="bg-secondary flex-grow-1 d-flex justify-content-center align-items-center">
+                    <div id="play" class="bg-light p-5 rounded d-flex flex-column">
+                        <h1 class="text-center mb-2">VP Guessr</h1>
+                        <button type="button" id="show-image" class="btn btn-secondary mt-3 w-100 mb-3">Show Photo</button>
+                        <form id="form">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="floor" id="floor1" value="floor1" checked>
+                                <label class="form-check-label" for="floor">
+                                Floor 1
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="floor" id="floor2" value="floor2">
+                                <label class="form-check-label" for="floor">
+                                Floor 2
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="floor" id="floor3" value="floor3">
+                                <label class="form-check-label" for="floor">
+                                Floor 3
+                                </label>
+                            </div>
+                            <button type="button" id="guess" class="btn btn-primary mt-3 w-100">Guess!</button>
+                        </form>
+                    </div>
+                    <div id="score" class="d-none">
+                        <h3 id="score-text" class="d-none">Score: 0/100</h5>
+                        <a href="/guessr"><button id="play-again" type="button" id="guess" class="d-none">Play Again</button></a>
+                    </div>
+                </container>
             </div>
-            <!-- Map -->
-            <iframe title="Map of School" class="col-sm h-100" src="https://app.mappedin.com/map/673c0afd38b831000b2d1c15?location={{room}}"></iframe>
         </div>
     </main>
     <script defer>
