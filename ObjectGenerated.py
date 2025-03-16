@@ -17,7 +17,8 @@ class ObjectGenerated(Object):
         objects within a room. You are given a description of the object and where it is hidden in the room  
         and you are tasked with generating a 20-25 word riddle. The riddle must be specific and unambiguous, 
         clearly directing the player to the item with unambiguous clues about the objects distinctive features 
-        and exact location within the room. Make sure the object's name is not included in the riddle. The object 
+        and exact location within the room. Do not invent details not explicitly given in the prompt. 
+        Make sure the object's name is not included in the riddle. The object 
         description given is {riddle}"""
 
         response = self.model.generate_content(prompt) # Generate a riddle given the above prompt

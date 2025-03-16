@@ -1,21 +1,13 @@
+<!-- Page to Submit Items -->
 <!doctype html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>VPEX - Guessr</title>
-
-        <style>
-            .map {
-                height: auto; 
-                width: auto; 
-                max-width: 100%; 
-                max-height: 100%;
-            }
-        </style>
+        <title>VPEX - Riddles</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     </head>
-    <body class="vh-100 d-flex flex-column">
+    <body class="d-flex flex-column vh-100">
         <nav class="navbar navbar-expand-lg bg-dark border-bottom border-body" data-bs-theme="dark">
             <!-- Navbar content -->
             <div class="container-fluid">
@@ -78,197 +70,37 @@
         
 
     <!-- Main -->
-    <main class="flex-grow-1 row">
-        <div id="image-div" class="col-md">
-            <img src="static/floors/floor1.jpg" alt="Map" class="map" id="image"/>
-            <div></div>
-        </div>
-        <div class="col-md d-flex justify-content-center align-items-center bg-secondary-subtle">
-            <div class="border border-2 border-danger rounded-3">
-                <container class="bg-secondary flex-grow-1 d-flex justify-content-center align-items-center">
-                    <div id="play" class="bg-light p-5 rounded d-flex flex-column">
-                        <h1 class="text-center mb-2">VP Guessr</h1>
-                        <button type="button" id="show-image" class="btn btn-secondary mt-3 w-100 mb-3">Show Photo</button>
-                        <form id="form">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="floor" id="floor1" value="floor1" checked>
-                                <label class="form-check-label" for="floor">
-                                Floor 1
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="floor" id="floor2" value="floor2">
-                                <label class="form-check-label" for="floor">
-                                Floor 2
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="floor" id="floor3" value="floor3">
-                                <label class="form-check-label" for="floor">
-                                Floor 3
-                                </label>
-                            </div>
-                            <button type="button" id="guess" class="btn btn-primary mt-3 w-100">Guess!</button>
-                        </form>
-                    </div>
-                    <div id="score" class="d-none">
-                        <h3 id="score-text" class="d-none">Score: 0/100</h5>
-                        <a href="/guessr"><button id="play-again" type="button" id="guess" class="d-none">Play Again</button></a>
-                    </div>
-                </container>
+    <main class="flex-grow-1 container">
+        <div class="row vh-100">
+            <div class="col-md-3 d-flex flex-column p-3 gap-3">
+                <!-- Current Time -->
+                <!-- Items found out of total -->
+                <div class = "d-flex justify-content-between">
+                    <p>{{obj+1}}/3</p>
+                    <p><a href="/leaderboard/{{hunt_id}}">Leaderboard</a></p>
+                </div>
+                <!-- Riddle -->
+                <div>
+                    <h2 class="text-center">Riddle #{{obj+1}}: {{room}}</h2>
+                    <p class="fst-italic">{{riddle}}</p>
+                </div>
+
+                <!-- Enter Code -->
+                <div>
+                    <form action="/submit-item" method="POST">
+                        <input name="code" type="number" class="form-control w-100" id="game-code-input" aria-describedby="item-code" placeholder="Enter Item Code">
+                        <label class="d-none" for="player-id">Player ID:</label>
+                        <input class="d-none" value="{{player_id}}" type="text" id="player-id" name="player_id">
+                        <label class="d-none" for="hunt-id">Hunt ID:</label>
+                        <input class="d-none" value="{{hunt_id}}" type="text" id="hunt-id" name="hunt_id">
+                        <button type="submit" class="btn btn-primary mt-3 w-100">Enter</button>
+                    </form> 
+                </div>
             </div>
+            <!-- Map -->
+            <iframe title="Map of School" class="col-sm h-100" src="https://app.mappedin.com/map/673c0afd38b831000b2d1c15?location={{room}}"></iframe>
         </div>
     </main>
-    <script>
-        // Variables to track states
-        var guessed = false
-        var score_revealed = false
-        currentFloor = 1
-        shown_image = "map"
-
-        // Getting Map/Photo Image
-        var image = document.getElementById('image');
-        var show_image_button = document.getElementById('show-image');
-
-        // Getting Map Width and Height based on client screen. This tracks the answer locations by percentage
-        // of the photo rather than absolute pixels so that it works on any desktop
-        var rect = image.getBoundingClientRect();
-        var mapWidth = image.clientWidth
-        var mapHeight = image.clientHeight
-
-        // Marker Locations
-        guess_x = 0;
-        guess_y = 0;
-
-        // Answer Locations given has percentage of phooto
-        ans_x = "{{loc.get_x()}}";
-        ans_y = "{{loc.get_y()}}";   
-        ans_floor = "{{loc.get_floor()}}"
-
-        var buttonFloor1 = document.getElementById('floor1');
-        var buttonFloor2 = document.getElementById('floor2');
-        var buttonFloor3 = document.getElementById('floor3');
-        var image_div = document.getElementById('image-div');
-
-        // Adding event listeners
-        document.getElementById('form').addEventListener('click', changeFloor);
-        image.addEventListener('click', addMarker, true);
-        show_image_button.addEventListener('click', changeImage);
-        document.getElementById('guess').addEventListener('click', showScore)
-
-        // Show Score given by guess
-        function showScore() {
-            if (guessed) {
-                score_revealed = true
-
-                display_x = ans_x * mapWidth + rect.left
-                display_y = ans_y * mapHeight + rect.top
-
-                marker = document.createElement('div');
-                marker.classList.add("marker")
-                marker.classList.add("bg-success");
-                marker.style.position = 'absolute';
-                marker.style.top = `${display_y-5}px`;
-                marker.style.left = `${display_x-5}px`;
-                marker.style.width = '10px';
-                marker.style.height = '10px';
-                image_div.append(marker);
-
-                marker2 = document.createElement('div');
-                marker2.classList.add("marker");
-                marker2.classList.add("h3");
-                marker2.classList.add("text-success");
-                marker2.style.position = 'absolute';
-                marker2.style.top = `${display_y-40}px`;
-                marker2.style.left = `${display_x}px`;
-                marker2.style.width = '60px';
-                marker2.style.height = '50px';
-                marker2.innerHTML = "ANSWER"
-                image_div.append(marker2);
-
-                document.getElementById('play').className = "d-none";
-                score_text = document.getElementById('score-text');
-                score_text.className = "";
-                play_again_button = document.getElementById('play-again');
-                play_again_button.className = "btn btn-primary mt-3 w-100";
-                document.getElementById('score').className = "bg-light p-4"
-
-                if (currentFloor != ans_floor) {
-                    score_text.innerHTML = "Wrong Floor! Score: 0/100"
-                    image.src = `static/floors/floor${ans_floor}.jpg`
-                }
-                else {
-                    rel_x = Math.abs(ans_x-guess_x)
-                    rel_y = Math.abs(ans_y-guess_y)
-                    off_distance = calcDistance(rel_x, rel_y)
-                    score_text.innerHTML = `Score: ${Math.max(100-off_distance*100, 0)}/100`
-                    image.src = `static/floors/floor${ans_floor}.jpg`
-
-                    console.log(off_distance, rel_x, rel_y)
-                }
-            }
-        }
-
-        // Pythagorean Theorem Calculation
-        function calcDistance(x, y) {
-            return Math.sqrt(Math.abs(x)**2 + Math.abs(y)**2)
-        }
-
-        // Adding Marker onto Photo
-        function addMarker(event) {
-            if (!score_revealed) {
-                guessed = true
-                var cX = event.pageX;
-                var cY = event.pageY;
-
-                guess_x = (cX - rect.left) / mapWidth
-                guess_y = (cY - rect.top) / mapHeight
-
-                console.log(guess_x, guess_y);
-
-                image_div.removeChild(image_div.lastChild)
-                var marker = document.createElement('div');
-                marker.classList.add("marker")
-                marker.classList.add("bg-danger");
-                marker.style.position = 'absolute';
-                marker.style.top = `${cY-5}px`;
-                marker.style.left = `${cX-5}px`;
-                marker.style.width = '10px';
-                marker.style.height = '10px';
-                image_div.append(marker);
-            }
-        }
-
-        // Change the image based on states
-        function changeImage() {
-            if (shown_image ==="map") {
-                show_image_button.innerHTML = "Show Map"
-                image.src = "{{loc.get_img()}}"
-
-                shown_image = "photo"
-            }
-            else {
-                show_image_button.innerHTML = "Show Photo"
-                image.src = `static/floors/floor${currentFloor}.jpg`
-
-                shown_image = "map"
-            }
-        }
-
-        // Change the floor based on states
-        function changeFloor() {
-            if (buttonFloor1.checked) {
-                currentFloor = 1
-            }
-            else if (buttonFloor2.checked) {
-                currentFloor = 2
-            }
-            else {
-                currentFloor = 3
-            }
-            image.src = `static/floors/floor${currentFloor}.jpg`
-        }
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
   </body>
 </html>

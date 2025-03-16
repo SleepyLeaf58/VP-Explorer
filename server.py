@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 from random import choice
 import os
+import sys
 
 # Other Library Imports for Utility
 import random
@@ -25,9 +26,11 @@ app = Flask(__name__)
 # Configuration
 load_dotenv()
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"   
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config["SECRET_KEY"] = os.environ['DB_KEY']
+app.secret_key = os.getenv('DB_KEY')
+print("DEBUGGING" ,os.getenv('DB_KEY'), file=sys.stderr)
+sys.stderr.flush()
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -71,7 +74,7 @@ def register():
             db.session.commit()
             return redirect(url_for("login"))
         return render_template("error.html", error="User Already Exists")
-    
+
     return render_template("sign-up.html")
 
 # Login
@@ -83,7 +86,7 @@ def login():
         if (user.password == request.form.get("password")):
             login_user(user)
             return redirect(url_for("home"))
-        
+
     return render_template("login.html")
 
 # Logout
@@ -124,7 +127,7 @@ def start_hunt():
     # Creating new hunt
     hunt_name = request.form['roomName']
     organizer = request.form['org']
-    
+
     objectNumber = 1
     objects = []
     players = []
@@ -134,13 +137,13 @@ def start_hunt():
         obj = None
         if (request.form[f'riddle-type-{objectNumber}'] == 'AI'):
             obj = ObjectGenerated("", request.form[f'room{objectNumber}'], request.form[f'code{objectNumber}'])
-        else: 
+        else:
             obj = ObjectProvided("", request.form[f'room{objectNumber}'], request.form[f'code{objectNumber}'])
         objects.append(obj)
         objectNumber += 1
 
     # Generating Hunt Code. The loop ensures that the code is unique
-    hunt_id = random.randint(1000, 9999)    
+    hunt_id = random.randint(1000, 9999)
     while hunt_id in hunts:
         hunt_id = random.randint(1000, 9999)
 
@@ -161,7 +164,7 @@ def save_hunt():
     # Creating new hunt
     hunt_name = request.form['roomName']
     organizer = request.form['org']
-    
+
     objectNumber = 1
     objects = []
 
@@ -169,7 +172,7 @@ def save_hunt():
         obj = None
         if (request.form[f'riddle-type-{objectNumber}'] == 'AI'):
             obj = ObjectGenerated("", request.form[f'room{objectNumber}'], request.form[f'code{objectNumber}'])
-        else: 
+        else:
             obj = ObjectProvided("", request.form[f'room{objectNumber}'], request.form[f'code{objectNumber}'])
         objects.append(obj)
         objectNumber += 1
@@ -216,11 +219,11 @@ def start_saved_hunt():
     # Creating new hunt
     game_id = int(request.form.get("game_id"))
     saved_hunt = saved_hunts[game_id]
-    
+
     objects = saved_hunt.objects
     players = []
 
-    hunt_id = random.randint(1000, 9999)    
+    hunt_id = random.randint(1000, 9999)
     while hunt_id in hunts:
         hunt_id = random.randint(1000, 9999)
 
@@ -261,7 +264,7 @@ def current_riddle():
             next_hint = hunts[hunt_id].objects[player.get_current_object()].get_riddle()
             next_room = hunts[hunt_id].objects[player.get_current_object()].get_room()
             return render_template("player-dashboard.html", riddle=next_hint, room=next_room, obj=player.get_current_object(), player_id=player_id, hunt_id=hunt_id)
-    
+
     return render_template("error.html", error="Player Not Found")
 
 # Route to get riddle information for other riddles
@@ -275,7 +278,7 @@ def current_riddle_get(player, hunt):
             next_hint = hunts[hunt_id].objects[player.get_current_object()].get_riddle()
             next_room = hunts[hunt_id].objects[player.get_current_object()].get_room()
             return render_template("player-dashboard.html", riddle=next_hint, room=next_room, obj=player.get_current_object(), player_id=player_id, hunt_id=hunt_id)
-    
+
     return render_template("error.html", error="Player Not Found")
 
 # Route to submit an item code
@@ -287,7 +290,7 @@ def submit_item():
 
     if hunt_id not in hunts:
         return render_template("error.html", error="Hunt Not Found")
-    
+
     # Going through players stored in the hunt to find the current player
     for player in hunts[hunt_id].players:
         if player_id == player.get_id():
@@ -297,7 +300,7 @@ def submit_item():
             # Player has already finished hunt
             if player.get_finished():
                 return render_template("error.html", error="You have already finished the hunt.")
-            
+
             if code == correct_code:
                 player.set_current_object(player.get_current_object() + 1)
                 player.set_current_time(time.time())
@@ -360,7 +363,7 @@ def leaderboard(hunt_id):
         print(player.get_start_time())
 
     sorted_scores = sorted(scores, key=lambda x: (x.get_score(), -x.get_time()), reverse=True)
-    
+
     return render_template("leaderboard.html", sorted_scores=enumerate(sorted_scores))
 
 # Adding Location Data
@@ -381,4 +384,4 @@ def guessr():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-        app.run()
+        app.run(debug=True)
