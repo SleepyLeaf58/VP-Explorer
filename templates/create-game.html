@@ -39,7 +39,7 @@
               Play
             </a>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="join-game">Join Hunt</a></li>
+              <li><a class="dropdown-item" href="/join-game">Join Hunt</a></li>
               <li><a class="dropdown-item" href="/guessr">Play Guessr</a></li>
             </ul>
           </li>
@@ -56,7 +56,7 @@
           {% if current_user.is_authenticated %}
           <div class="nav-item dropdown text-end">
             <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {{current_user.is_authenticated}}
+              {{current_user.is_username}}
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" href="/logout">Log Out</a></li>

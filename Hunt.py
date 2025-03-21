@@ -30,3 +30,6 @@ class Hunt:
     
     def set_start_time(self, start_time):
         self.__start_time = start_time
+    
+    def get_num_objects(self):
+        return len(self.objects)
