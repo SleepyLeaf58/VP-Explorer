@@ -206,7 +206,7 @@ def dashboard():
         if hunt.save_id in saved_hunts:
             user_games.append(saved_hunts[hunt.save_id])
 
-    return render_template("dashboard.html", user_games=user_games, name='Dashboard')
+    return render_template("dashboard.html", user_games=user_games, num_games=len(user_games), name='Dashboard')
 
 # Route to start saved hunt from hunt information
 @app.route("/start-saved-hunt", methods=["POST"])
@@ -264,9 +264,9 @@ def current_riddle():
             player.set_start_time(time.time()) # Setting the start time to use for calculating time elapsed
             # By starting the time when they enter the first riddle, they can wait on the enter page before starting the hunt
 
-            next_hint = hunts[hunt_id].objects[player.get_current_object()].get_riddle()
-            next_room = hunts[hunt_id].objects[player.get_current_object()].get_room()
-            return render_template("player-dashboard.html", riddle=next_hint, room=next_room, obj=player.get_current_object(), player_id=player_id, hunt_id=hunt_id)
+            hint = hunts[hunt_id].objects[player.get_current_object()].get_riddle()
+            room = hunts[hunt_id].objects[player.get_current_object()].get_room()
+            return render_template("player-dashboard.html", riddle=hint, room=room, obj=player.get_current_object(), player_id=player_id, hunt_id=hunt_id)
 
     return render_template("error.html", error="Player Not Found")
 
@@ -278,9 +278,9 @@ def current_riddle_get(player, hunt):
 
     for player in hunts[hunt_id].players:
         if player_id == player.get_id():
-            next_hint = hunts[hunt_id].objects[player.get_current_object()].get_riddle()
-            next_room = hunts[hunt_id].objects[player.get_current_object()].get_room()
-            return render_template("player-dashboard.html", riddle=next_hint, room=next_room, obj=player.get_current_object(), player_id=player_id, hunt_id=hunt_id)
+            hint = hunts[hunt_id].objects[player.get_current_object()].get_riddle()
+            room = hunts[hunt_id].objects[player.get_current_object()].get_room()
+            return render_template("player-dashboard.html", riddle=hint, room=room, obj=player.get_current_object(), player_id=player_id, hunt_id=hunt_id)
 
     return render_template("error.html", error="Player Not Found")
 
